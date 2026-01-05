@@ -1,0 +1,44 @@
+#include <IRremote.hpp>
+
+#define IR_RECEIVE_PIN 26
+#define IR_SEND_PIN    4
+
+void setup() {
+  Serial.begin(115200);
+
+  // 受信開始
+  IrReceiver.begin(IR_RECEIVE_PIN, ENABLE_LED_FEEDBACK);
+
+  // 送信開始
+  IrSender.begin(IR_SEND_PIN);
+
+  Serial.println("IR Send -> Receive Test Ready");
+}
+
+void loop() {
+
+  // ===== 送信 =====
+  Serial.println("SEND: NEC Address=0x80 Command=0x1A");
+  for(int i=0;i<=1;i++){
+    IrSender.sendNEC(0x80, 0x1A, 0);
+    delay(40)
+  }
+  
+
+  delay(500); // ← 重要：受信準備待ち
+
+  // ===== 受信 =====
+  unsigned long start = millis();
+  while (millis() - start < 1000) { // 1秒待つ
+    if (IrReceiver.decode()) {
+      Serial.println("----- RECEIVED -----");
+      IrReceiver.printIRResultShort(&Serial);
+      Serial.println();
+
+      IrReceiver.resume();
+      break;
+    }
+  }
+
+  delay(5000); // 次のテストまで待つ
+}
